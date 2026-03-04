@@ -1,4 +1,4 @@
-# 🏙️ Comparateur de Villes Françaises
+# Comparateur de Villes Françaises
 
 **Projet noté - BUT SD2 VCOD - Programmation Web**  
 **Technologie:** Streamlit  
@@ -14,6 +14,11 @@ Application web interactive permettant de comparer deux villes françaises de pl
 - 💼 **Emploi** : Taux d'activité, taux de chômage, répartition des emplois
 - 🏠 **Logement** : Types de logements, taux de vacance, propriétaires/locataires
 - 🌤️ **Météo** : Prévisions météorologiques sur 5 jours (données en temps réel)
+
+- 🎓 **Formation** : 
+- 🏅 **Sports** : 
+- 🎭 **Culture** : 
+- 🧭 **Tourisme** : 
 
 ---
 

@@ -65,6 +65,42 @@ def charger_donnees():
     return donnees_completes.sort_values(by="nom_commune_complet")
 
 
+@streamlit.cache_data
+def charger_formations():
+    """
+    Charge les données de formations Parcoursup.
+    
+    Returns:
+        pandas.DataFrame: Données de formations avec colonnes normalisées
+    """
+    data_formations = pandas.read_csv("base_formation_parcoursup.csv", sep=";", low_memory=False)
+    return data_formations
+
+
+def obtenir_formations_commune(commune_nom, data_formations):
+    """
+    Filtre les formations pour une commune donnée.
+    
+    Args:
+        commune_nom: Nom de la commune
+        data_formations: DataFrame avec les données de formations
+        
+    Returns:
+        pandas.DataFrame: Formations disponibles dans la commune
+    """
+    # Essayer différentes colonnes pour le nom de commune
+    colonies_commune = ['Commune de l\'établissement', 'Commune de l'établissement']
+    
+    for col in colonies_commune:
+        if col in data_formations.columns:
+            formations = data_formations[data_formations[col].str.strip().str.lower() == commune_nom.lower()]
+            if not formations.empty:
+                return formations
+    
+    # Si aucune colonne standard trouvée, retourner vide
+    return pandas.DataFrame()
+
+
 @streamlit.cache_data(ttl=3600)  # Cache de 1h pour les données météo
 def obtenir_meteo(ville_nom, latitude, longitude):
     """
@@ -114,6 +150,7 @@ def code_meteo_vers_emoji(code):
 # ============================================================================
 
 villes_data = charger_donnees()
+formations_data = charger_formations()
 liste_villes = list(villes_data["nom_commune_complet"])
 
 # ============================================================================
@@ -645,6 +682,8 @@ with onglet4:
 
 with onglet5:
     streamlit.header("Indicateurs Formation", divider="blue")
+
+
 
 # ============================================================================
 # ONGLET 6 : Sports
