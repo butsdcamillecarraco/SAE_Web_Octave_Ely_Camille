@@ -688,26 +688,139 @@ with onglet5:
     col1, col2 = streamlit.columns(2)
     
     # FORMATION ville A
+    # Colonnes utiles (avec fallback si noms légèrement différents)
+    col_libelle = next(
+        (c for c in ["Libellé de la formation", "Libelle de la formation"] if c in formations_data.columns),
+        None
+    )
+    col_entree = next(
+        (c for c in ["Niveau d'entrée", "Niveau d entree"] if c in formations_data.columns),
+        None
+    )
+    col_sortie = next(
+        (c for c in ["Niveau de sortie"] if c in formations_data.columns),
+        None
+    )
+
+    # FORMATION ville A
     with col1:
         streamlit.subheader(f"🔵 {ville_A}")
         formations_A = obtenir_formations_commune(ville_A, formations_data)
-        
+
         if not formations_A.empty:
-            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_A)}**")
-            streamlit.dataframe(formations_A[["Libellé de la formation", "Niveau d'entrée", "Niveau de sortie"]].head(10))
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_A):,}**".replace(",", " "))
+
+            colonnes_affichage = [c for c in [col_libelle, col_entree, col_sortie] if c is not None]
+            if colonnes_affichage:
+                streamlit.dataframe(formations_A[colonnes_affichage].head(10), use_container_width=True)
+
+            # Graphique : répartition des niveaux d'entrée
+            if col_entree in formations_A.columns:
+                rep_entree_A = (
+                    formations_A[col_entree]
+                    .fillna("Non renseigné")
+                    .astype(str)
+                    .str.strip()
+                    .replace("", "Non renseigné")
+                    .value_counts()
+                    .head(8)
+                )
+
+                fig_entree_A = go.Figure(
+                    go.Bar(
+                        x=rep_entree_A.index,
+                        y=rep_entree_A.values,
+                        marker_color="#1f77b4",
+                        text=rep_entree_A.values,
+                        textposition="auto"
+                    )
+                )
+                fig_entree_A.update_layout(
+                    title=f"Répartition des niveaux d'entrée - {ville_A}",
+                    xaxis_title="Niveau d'entrée",
+                    yaxis_title="Nombre de formations",
+                    height=320
+                )
+                streamlit.plotly_chart(fig_entree_A, use_container_width=True)
         else:
             streamlit.warning("Aucune formation trouvée pour cette commune.")
 
     # FORMATION ville B
     with col2:
-        streamlit.subheader(f"🟠 {ville_B}")
+        streamlit.subheader(f"🟢 {ville_B}")
         formations_B = obtenir_formations_commune(ville_B, formations_data)
-        
+
         if not formations_B.empty:
-            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_B)}**")
-            streamlit.dataframe(formations_B[["Libellé de la formation", "Niveau d'entrée", "Niveau de sortie"]].head(10))
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_B):,}**".replace(",", " "))
+
+            colonnes_affichage = [c for c in [col_libelle, col_entree, col_sortie] if c is not None]
+            if colonnes_affichage:
+                streamlit.dataframe(formations_B[colonnes_affichage].head(10), use_container_width=True)
+
+            # Graphique : répartition des niveaux d'entrée
+            if col_entree in formations_B.columns:
+                rep_entree_B = (
+                    formations_B[col_entree]
+                    .fillna("Non renseigné")
+                    .astype(str)
+                    .str.strip()
+                    .replace("", "Non renseigné")
+                    .value_counts()
+                    .head(8)
+                )
+
+                fig_entree_B = go.Figure(
+                    go.Bar(
+                        x=rep_entree_B.index,
+                        y=rep_entree_B.values,
+                        marker_color="#2ca02c",
+                        text=rep_entree_B.values,
+                        textposition="auto"
+                    )
+                )
+                fig_entree_B.update_layout(
+                    title=f"Répartition des niveaux d'entrée - {ville_B}",
+                    xaxis_title="Niveau d'entrée",
+                    yaxis_title="Nombre de formations",
+                    height=320
+                )
+                streamlit.plotly_chart(fig_entree_B, use_container_width=True)
         else:
             streamlit.warning("Aucune formation trouvée pour cette commune.")
+
+    # Comparaison synthétique entre les deux villes
+    streamlit.divider()
+    streamlit.subheader("📊 Comparaison des formations")
+
+    nb_A = len(formations_A) if 'formations_A' in locals() else 0
+    nb_B = len(formations_B) if 'formations_B' in locals() else 0
+
+    nb_uniques_A = formations_A[col_libelle].nunique() if (nb_A > 0 and col_libelle in formations_A.columns) else 0
+    nb_uniques_B = formations_B[col_libelle].nunique() if (nb_B > 0 and col_libelle in formations_B.columns) else 0
+
+    fig_compare = go.Figure()
+    fig_compare.add_trace(go.Bar(
+        name=ville_A,
+        x=["Formations totales", "Formations distinctes"],
+        y=[nb_A, nb_uniques_A],
+        marker_color="#1f77b4",
+        text=[f"{nb_A:,}".replace(",", " "), f"{nb_uniques_A:,}".replace(",", " ")],
+        textposition="auto"
+    ))
+    fig_compare.add_trace(go.Bar(
+        name=ville_B,
+        x=["Formations totales", "Formations distinctes"],
+        y=[nb_B, nb_uniques_B],
+        marker_color="#2ca02c",
+        text=[f"{nb_B:,}".replace(",", " "), f"{nb_uniques_B:,}".replace(",", " ")],
+        textposition="auto"
+    ))
+    fig_compare.update_layout(
+        barmode="group",
+        yaxis_title="Nombre",
+        height=360
+    )
+    streamlit.plotly_chart(fig_compare, use_container_width=True)
 
 
 # ============================================================================
