@@ -98,11 +98,15 @@ def obtenir_formations_commune(nom_commune, data_formations):
     Returns:
         pandas.DataFrame: Formations disponibles dans la commune
     """
-    colonies_commune = ['Commune de l\'établissement', "Commune de l'établissement"]
+    colonies_commune = [
+        "Commune de l’établissement",  # accent grave
+        "Commune de l'etablissement",  # sans accent
+        "Commune de l'établissement",  # apostrophe
+        "Commune de l\'établissement"  # échappé
+    ]
     commune_norm = normalize_str(nom_commune)
     for col in colonies_commune:
         if col in data_formations.columns:
-            # Normalisation de la colonne pour la comparaison
             col_norm = data_formations[col].fillna("").apply(normalize_str)
             mask = col_norm == commune_norm
             formations = data_formations[mask]
@@ -693,11 +697,9 @@ with onglet4:
 
 with onglet5:
     streamlit.header("Indicateurs Formation", divider="blue")
-
     col1, col2 = streamlit.columns(2)
-    
-    # FORMATION ville A
-    # Colonnes utiles (avec fallback si noms légèrement différents)
+
+    # Colonnes robustes pour affichage
     col_libelle = next(
         (c for c in ["Libellé de la formation", "Libelle de la formation"] if c in formations_data.columns),
         None
@@ -710,7 +712,150 @@ with onglet5:
         (c for c in ["Niveau de sortie"] if c in formations_data.columns),
         None
     )
+    col_filiere = next(
+        (c for c in ["Filière de formation", "Filiere de formation"] if c in formations_data.columns),
+        None
+    )
+    col_statut = next(
+        (c for c in [
+            "Statut de l'établissement de la filière de formation (public, privé…)",
+            "Statut de l'établissement de la filière de formation (public, prive...)",
+            "Statut de l'établissement de la filière de formation (public, privé...)"
+        ] if c in formations_data.columns),
+        None
+    )
 
+    # FORMATION ville A
+    with col1:
+        streamlit.subheader(f"🔵 {ville_A}")
+        formations_A = obtenir_formations_commune(ville_A, formations_data)
+        if not formations_A.empty:
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_A)}**")
+            colonnes_affichage = [c for c in [col_libelle, col_entree, col_sortie] if c is not None]
+            if colonnes_affichage:
+                streamlit.dataframe(formations_A[colonnes_affichage].head(10), use_container_width=True)
+        else:
+            streamlit.warning("Aucune formation trouvée pour cette commune.")
+
+    # FORMATION ville B
+    with col2:
+        streamlit.subheader(f"🟠 {ville_B}")
+        formations_B = obtenir_formations_commune(ville_B, formations_data)
+        if not formations_B.empty:
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_B)}**")
+            colonnes_affichage = [c for c in [col_libelle, col_entree, col_sortie] if c is not None]
+            if colonnes_affichage:
+                streamlit.dataframe(formations_B[colonnes_affichage].head(10), use_container_width=True)
+        else:
+            streamlit.warning("Aucune formation trouvée pour cette commune.")
+
+    streamlit.divider()
+    streamlit.caption("Données Parcoursup")
+
+    # Graphiques comparatifs et analyses
+    if not formations_A.empty or not formations_B.empty:
+        streamlit.subheader("📊 Analyses comparatives")
+        col_g1, col_g2 = streamlit.columns(2)
+
+        with col_g1:
+            # Répartition public/privé
+            if not formations_A.empty and col_statut in formations_A.columns:
+                statut_counts_A = formations_A[col_statut].value_counts()
+                fig_statut_A = go.Figure(data=[go.Pie(
+                    labels=statut_counts_A.index,
+                    values=statut_counts_A.values,
+                    marker_colors=['#1f77b4', '#aec7e8', '#17a2b8'],
+                    title=f"{ville_A}"
+                )])
+                fig_statut_A.update_layout(
+                    title="Répartition Public/Privé",
+                    height=350
+                )
+                streamlit.plotly_chart(fig_statut_A, use_container_width=True)
+            if not formations_B.empty and col_statut in formations_B.columns:
+                statut_counts_B = formations_B[col_statut].value_counts()
+                fig_statut_B = go.Figure(data=[go.Pie(
+                    labels=statut_counts_B.index,
+                    values=statut_counts_B.values,
+                    marker_colors=['#ff7f0e', '#ffbb78', '#fd7e14'],
+                    title=f"{ville_B}"
+                )])
+                fig_statut_B.update_layout(
+                    title="Répartition Public/Privé",
+                    height=350
+                )
+                streamlit.plotly_chart(fig_statut_B, use_container_width=True)
+
+        with col_g2:
+            # Top 5 filières
+            if not formations_A.empty and col_filiere in formations_A.columns:
+                filiere_counts_A = formations_A[col_filiere].value_counts().head(5)
+                fig_filiere_A = go.Figure(data=[go.Bar(
+                    x=filiere_counts_A.values,
+                    y=filiere_counts_A.index,
+                    orientation='h',
+                    marker_color='#1f77b4',
+                    text=filiere_counts_A.values,
+                    textposition='auto'
+                )])
+                fig_filiere_A.update_layout(
+                    title=f"Top 5 Filières - {ville_A}",
+                    xaxis_title="Nombre de formations",
+                    yaxis_title="Filière",
+                    height=350
+                )
+                streamlit.plotly_chart(fig_filiere_A, use_container_width=True)
+            if not formations_B.empty and col_filiere in formations_B.columns:
+                filiere_counts_B = formations_B[col_filiere].value_counts().head(5)
+                fig_filiere_B = go.Figure(data=[go.Bar(
+                    x=filiere_counts_B.values,
+                    y=filiere_counts_B.index,
+                    orientation='h',
+                    marker_color='#ff7f0e',
+                    text=filiere_counts_B.values,
+                    textposition='auto'
+                )])
+                fig_filiere_B.update_layout(
+                    title=f"Top 5 Filières - {ville_B}",
+                    xaxis_title="Nombre de formations",
+                    yaxis_title="Filière",
+                    height=350
+                )
+                streamlit.plotly_chart(fig_filiere_B, use_container_width=True)
+
+        # Comparaison globale statut
+        streamlit.subheader("🔀 Comparaison directe")
+        if (not formations_A.empty and not formations_B.empty and col_statut in formations_A.columns and col_statut in formations_B.columns):
+            statut_A = formations_A[col_statut].value_counts()
+            statut_B = formations_B[col_statut].value_counts()
+            all_statuts = list(set(statut_A.index.tolist() + statut_B.index.tolist()))
+            values_A = [statut_A.get(s, 0) for s in all_statuts]
+            values_B = [statut_B.get(s, 0) for s in all_statuts]
+            fig_comp = go.Figure()
+            fig_comp.add_trace(go.Bar(
+                name=ville_A,
+                x=all_statuts,
+                y=values_A,
+                marker_color='#1f77b4',
+                text=values_A,
+                textposition='auto'
+            ))
+            fig_comp.add_trace(go.Bar(
+                name=ville_B,
+                x=all_statuts,
+                y=values_B,
+                marker_color='#ff7f0e',
+                text=values_B,
+                textposition='auto'
+            ))
+            fig_comp.update_layout(
+                title="Comparaison du nombre de formations par statut",
+                barmode='group',
+                xaxis_title="Statut",
+                yaxis_title="Nombre de formations",
+                height=400
+            )
+            streamlit.plotly_chart(fig_comp, use_container_width=True)
 # ============================================================================
 # ONGLET 6 : Sports
 # ============================================================================
