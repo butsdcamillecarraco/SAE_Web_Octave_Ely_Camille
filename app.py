@@ -64,6 +64,7 @@ def charger_donnees():
     
     return donnees_completes.sort_values(by="nom_commune_complet")
 
+# ------------- ParcpourSup ------------------
 
 @streamlit.cache_data
 def charger_formations():
@@ -100,6 +101,7 @@ def obtenir_formations_commune(commune_nom, data_formations):
     # Si aucune colonne standard trouvée, retourner vide
     return pandas.DataFrame()
 
+# ------------- Autre ------------------
 
 @streamlit.cache_data(ttl=3600)  # Cache de 1h pour les données météo
 def obtenir_meteo(ville_nom, latitude, longitude):
@@ -560,7 +562,7 @@ with onglet3:
 with onglet4:
     streamlit.header("Conditions Météorologiques", divider="blue")
     
-    streamlit.info("🌍 Données météo en temps réel via Open-Meteo API (prévisions sur 5 jours)")
+    streamlit.info("🌍 Données météo en temps réel (prévisions sur 5 jours)")
     
     col1, col2 = streamlit.columns(2)
     
@@ -683,6 +685,29 @@ with onglet4:
 with onglet5:
     streamlit.header("Indicateurs Formation", divider="blue")
 
+    col1, col2 = streamlit.columns(2)
+    
+    # FORMATION ville A
+    with col1:
+        streamlit.subheader(f"🔵 {ville_A}")
+        formations_A = obtenir_formations_commune(ville_A, formations_data)
+        
+        if not formations_A.empty:
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_A)}**")
+            streamlit.dataframe(formations_A[["Libellé de la formation", "Niveau d'entrée", "Niveau de sortie"]].head(10))
+        else:
+            streamlit.warning("Aucune formation trouvée pour cette commune.")
+
+    # FORMATION ville B
+    with col2:
+        streamlit.subheader(f"🟠 {ville_B}")
+        formations_B = obtenir_formations_commune(ville_B, formations_data)
+        
+        if not formations_B.empty:
+            streamlit.markdown(f"**Nombre de formations disponibles : {len(formations_B)}**")
+            streamlit.dataframe(formations_B[["Libellé de la formation", "Niveau d'entrée", "Niveau de sortie"]].head(10))
+        else:
+            streamlit.warning("Aucune formation trouvée pour cette commune.")
 
 
 # ============================================================================
