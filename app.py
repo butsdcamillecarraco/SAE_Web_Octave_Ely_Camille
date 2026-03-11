@@ -259,7 +259,7 @@ with streamlit.sidebar:
     streamlit.subheader("Sélection des villes")
 
     default_A = liste_villes.index("Niort") if "Niort" in liste_villes else 0
-    default_B = liste_villes.index("Lorient") if "Lorient" in liste_villes else min(1, len(liste_villes) - 1)
+    default_B = liste_villes.index("Bordeaux") if "Bordeaux" in liste_villes else min(1, len(liste_villes) - 1)
 
     ville_A = streamlit.selectbox("🔵 Ville A", liste_villes, index=default_A, key="ville_a")
     ville_B = streamlit.selectbox("🟠 Ville B", liste_villes, index=default_B, key="ville_b")
