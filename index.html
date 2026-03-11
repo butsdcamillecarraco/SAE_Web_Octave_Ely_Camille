@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Villes - Analyse & Comparaison</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1e293b;
+            background: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1rem 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.4s cubic-bezier(.4,0,.2,1);
+        }
+        .navbar.scrolled {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            padding: 0.7rem 3rem;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 0.75rem;
+            font-weight: 700; font-size: 1.15rem;
+            color: white; text-decoration: none;
+            transition: color 0.3s;
+        }
+        .navbar.scrolled .nav-brand { color: #1e293b; }
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+        .nav-links a {
+            color: rgba(255,255,255,0.75); text-decoration: none;
+            font-weight: 500; font-size: 0.9rem; transition: color 0.3s;
+        }
+        .navbar.scrolled .nav-links a { color: #64748b; }
+        .nav-links a:hover { color: white; }
+        .navbar.scrolled .nav-links a:hover { color: #6366f1; }
+        .nav-cta {
+            padding: 0.55rem 1.4rem !important;
+            background: rgba(255,255,255,0.12) !important;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 50px; font-weight: 600 !important;
+            transition: all 0.3s !important; cursor: pointer;
+        }
+        .nav-cta:hover { background: rgba(255,255,255,0.25) !important; }
+        .navbar.scrolled .nav-cta {
+            background: #6366f1 !important; color: white !important;
+            border-color: #6366f1;
+        }
+        .navbar.scrolled .nav-cta:hover { background: #4f46e5 !important; }
+
+        /* ========== HERO ========== */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .hero-orb {
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.25;
+        }
+        .hero-orb-1 {
+            width: 700px; height: 700px; background: #6366f1;
+            top: -250px; right: -150px;
+            animation: drift 12s ease-in-out infinite;
+        }
+        .hero-orb-2 {
+            width: 500px; height: 500px; background: #a855f7;
+            bottom: -200px; left: -100px;
+            animation: drift 15s ease-in-out infinite reverse;
+        }
+        .hero-orb-3 {
+            width: 300px; height: 300px; background: #ec4899;
+            top: 40%; left: 60%;
+            animation: drift 10s ease-in-out infinite 2s;
+        }
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -40px) scale(1.05); }
+        }
+
+        .hero-content {
+            text-align: center; position: relative; z-index: 2;
+            max-width: 820px; padding: 0 2rem;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.45rem 1.1rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50px;
+            color: rgba(255,255,255,0.7); font-size: 0.82rem; font-weight: 500;
+            margin-bottom: 2rem;
+        }
+        .hero-badge .dot {
+            width: 7px; height: 7px; background: #34d399;
+            border-radius: 50%; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.2rem);
+            font-weight: 800; color: white; line-height: 1.1;
+            margin-bottom: 1.5rem; letter-spacing: -1.5px;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.15rem; color: rgba(255,255,255,0.5);
+            line-height: 1.75; margin-bottom: 2.5rem;
+            max-width: 580px; margin-left: auto; margin-right: auto;
+        }
+        .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            padding: 0.9rem 2.2rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border: none; border-radius: 50px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-family: inherit;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(99,102,241,0.35); }
+        .btn-secondary {
+            padding: 0.9rem 2.2rem;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50px; font-size: 1rem; font-weight: 500;
+            cursor: pointer; transition: all 0.3s; text-decoration: none;
+            font-family: inherit;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+        .stats-bar {
+            display: flex; justify-content: center; gap: 4rem;
+            margin-top: 4rem; padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: white; }
+        .stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem; }
+
+        /* ========== SECTIONS COMMON ========== */
+        .section-label {
+            text-transform: uppercase; letter-spacing: 3px;
+            font-size: 0.78rem; font-weight: 600; color: #6366f1;
+            text-align: center; margin-bottom: 0.75rem;
+        }
+        .section-title {
+            font-size: 2.2rem; font-weight: 800; text-align: center;
+            letter-spacing: -1px; margin-bottom: 0.75rem;
+        }
+        .section-subtitle {
+            text-align: center; color: #64748b; font-size: 1.05rem;
+            max-width: 550px; margin: 0 auto 3rem; line-height: 1.7;
+        }
+
+        /* ========== FEATURES ========== */
+        .features { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 1.25rem;
+        }
+        .feature-card {
+            background: white; border-radius: 16px; padding: 1.75rem;
+            border: 1px solid #e2e8f0; transition: all 0.35s cubic-bezier(.4,0,.2,1);
+            cursor: default;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+            border-color: #c7d2fe;
+        }
+        .feature-icon {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.35rem; margin-bottom: 1.1rem;
+        }
+        .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .feature-card p { color: #64748b; font-size: 0.85rem; line-height: 1.6; }
+
+        /* icon backgrounds */
+        .icon-blue { background: #eff6ff; }
+        .icon-green { background: #f0fdf4; }
+        .icon-orange { background: #fff7ed; }
+        .icon-cyan { background: #ecfeff; }
+        .icon-purple { background: #faf5ff; }
+        .icon-red { background: #fef2f2; }
+        .icon-pink { background: #fdf2f8; }
+        .icon-teal { background: #f0fdfa; }
+
+        /* ========== TEAM ========== */
+        .team { padding: 5rem 2rem; background: white; }
+        .team-grid {
+            display: flex; justify-content: center; gap: 1.5rem;
+            flex-wrap: wrap; max-width: 750px; margin: 0 auto;
+        }
+        .team-card {
+            background: #f8fafc; padding: 2rem 2.5rem; border-radius: 16px;
+            text-align: center; border: 1px solid #e2e8f0;
+            transition: all 0.3s; min-width: 180px;
+        }
+        .team-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,0,0,0.06); }
+        .team-avatar {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; font-weight: 700; margin: 0 auto 0.9rem;
+        }
+        .team-card h3 { font-size: 1rem; margin-bottom: 0.2rem; }
+        .team-card p { color: #94a3b8; font-size: 0.8rem; }
+
+        /* ========== FOOTER ========== */
+        footer {
+            padding: 2rem; text-align: center;
+            color: #94a3b8; font-size: 0.82rem;
+            border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        footer a { color: #6366f1; text-decoration: none; }
+
+        /* ========== DASHBOARD ========== */
+        #page-dashboard {
+            display: none; height: 100vh; flex-direction: column;
+            position: fixed; inset: 0; z-index: 2000; background: #f1f5f9;
+        }
+        #page-dashboard.active { display: flex; }
+
+        .dash-header {
+            background: white; padding: 0.8rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
+        }
+        .dash-header-left { display: flex; align-items: center; gap: 1.5rem; }
+        .back-btn {
+            display: flex; align-items: center; gap: 0.4rem;
+            color: #6366f1; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; border: none; background: none;
+            padding: 0.45rem 0.9rem; border-radius: 8px;
+            transition: background 0.2s; font-family: inherit;
+        }
+        .back-btn:hover { background: #f1f5f9; }
+        .dash-title { font-weight: 600; font-size: 0.95rem; color: #1e293b; }
+        .dash-status {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.82rem; color: #64748b;
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #f59e0b; transition: background 0.3s;
+        }
+        .status-dot.connected { background: #22c55e; animation: pulse 2s infinite; }
+
+        .dash-body { flex: 1; position: relative; }
+        .dash-body iframe {
+            width: 100%; height: 100%; border: none;
+            opacity: 0; transition: opacity 0.6s ease;
+        }
+        .dash-body iframe.loaded { opacity: 1; }
+
+        .dash-loader {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1.2rem;
+            background: #f1f5f9; transition: opacity 0.5s;
+        }
+        .dash-loader.hidden { opacity: 0; pointer-events: none; }
+
+        .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid #e2e8f0; border-top-color: #6366f1;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        .loader-sub { color: #94a3b8; font-size: 0.8rem; }
+
+        /* ========== ANIMATIONS ========== */
+        .reveal {
+            opacity: 0; transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(.4,0,.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .navbar { padding: 0.8rem 1.5rem; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.2rem; letter-spacing: -1px; }
+            .hero p { font-size: 1rem; }
+            .stats-bar { gap: 2rem; flex-wrap: wrap; }
+            .stat-number { font-size: 1.4rem; }
+            .features { padding: 4rem 1rem; }
+            .section-title { font-size: 1.8rem; }
+            .dash-header { padding: 0.7rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =================== PAGE ACCUEIL =================== -->
+    <div id="page-accueil">
+
+        <!-- NAVBAR -->
+        <nav class="navbar" id="navbar">
+            <a href="#" class="nav-brand" onclick="goHome()">
+                <div class="nav-logo">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                Data Villes
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Fonctionnalites</a></li>
+                <li><a href="#equipe">Equipe</a></li>
+                <li><a href="#" class="nav-cta" onclick="ouvrirDashboard(); return false;">Dashboard</a></li>
+            </ul>
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="hero-orb hero-orb-3"></div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    Projet BUT SD2 VCOD &mdash; Mars 2026
+                </div>
+                <h1>Comparez les villes<br><span class="gradient-text">en un coup d'oeil</span></h1>
+                <p>Explorez et comparez les donnees socio-economiques de plus de 300 villes francaises de plus de 20 000 habitants. Emploi, logement, meteo, formation et plus encore.</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" onclick="ouvrirDashboard()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                        Acceder au Dashboard
+                    </button>
+                    <a href="#features" class="btn-secondary">En savoir plus</a>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-number">300+</div>
+                        <div class="stat-label">Villes analysees</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Indicateurs</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section class="features" id="features">
+            <p class="section-label">Fonctionnalites</p>
+            <h2 class="section-title">Tout pour comparer deux villes</h2>
+            <p class="section-subtitle">Selectionnez deux communes et explorez 8 categories d'indicateurs avec des graphiques interactifs.</p>
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon icon-blue">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <h3>Generalites & Carte</h3>
+                    <p>Population, superficie, densite et localisation interactive sur carte.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon icon-green">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    </div>
+                    <h3>Emploi</h3>
+                    <p>Taux de chomage, taux d'activite et structure de l'emploi.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon icon-orange">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </div>
+                    <h3>Logement</h3>
+                    <p>Logements vacants, residences principales, taux de proprietaires.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon icon-cyan">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M12 2v2"/><path d="M12 20v2"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                    </div>
+                    <h3>Meteo</h3>
+                    <p>Previsions en temps reel sur 5 jours via Open-Meteo API.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon icon-purple">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </div>
+                    <h3>Formation</h3>
+                    <p>Donnees Parcoursup : filieres, selectivite, capacite d'accueil.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon icon-red">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m8 12 2.5 2.5L16 9"/></svg>
+                    </div>
+                    <h3>Sports</h3>
+                    <p>Equipements et infrastructures sportives de la commune.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon icon-pink">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <h3>Culture</h3>
+                    <p>Musees, theatres, bibliotheques et lieux culturels.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon icon-teal">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <h3>Tourisme</h3>
+                    <p>Sites touristiques et attractivite de la ville.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EQUIPE -->
+        <section class="team" id="equipe">
+            <p class="section-label">Equipe</p>
+            <h2 class="section-title">Realise par</h2>
+            <p class="section-subtitle">Projet SAE Web &mdash; BUT Science des Donnees, 2e annee</p>
+            <div class="team-grid">
+                <div class="team-card reveal">
+                    <div class="team-avatar">O</div>
+                    <h3>Octave</h3>
+                    <p>Developpeur</p>
+                </div>
+                <div class="team-card reveal reveal-delay-1">
+                    <div class="team-avatar">E</div>
+                    <h3>Ely</h3>
+                    <p>Developpeur</p>
+                </div>
+                <div class="team-card reveal reveal-delay-2">
+                    <div class="team-avatar">C</div>
+                    <h3>Camille</h3>
+                    <p>Developpeur</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            Data Villes &copy; 2026 &mdash; Projet universitaire BUT SD2 VCOD &mdash;
+            <a href="#" onclick="ouvrirDashboard(); return false;">Ouvrir le Dashboard</a>
+        </footer>
+    </div>
+
+    <!-- =================== PAGE DASHBOARD =================== -->
+    <div id="page-dashboard">
+        <div class="dash-header">
+            <div class="dash-header-left">
+                <button class="back-btn" onclick="fermerDashboard()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    Accueil
+                </button>
+                <span class="dash-title">Dashboard Comparateur</span>
+            </div>
+            <div class="dash-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connexion en cours...</span>
+            </div>
+        </div>
+        <div class="dash-body">
+            <div class="dash-loader" id="dashLoader">
+                <div class="spinner"></div>
+                <div class="loader-text" id="loaderText">Connexion au serveur Streamlit...</div>
+                <div class="loader-sub" id="loaderSub"></div>
+            </div>
+            <iframe id="st-frame"></iframe>
+        </div>
+    </div>
+
+    <!-- =================== SCRIPTS =================== -->
+    <script>
+        // ---------- Navigation ----------
+        function ouvrirDashboard() {
+            document.getElementById('page-dashboard').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            demarrerConnexion();
+        }
+
+        function fermerDashboard() {
+            document.getElementById('page-dashboard').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function goHome() {
+            fermerDashboard();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ---------- Navbar scroll ----------
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ---------- Reveal animations ----------
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // ---------- Streamlit connection ----------
+        const iframe = document.getElementById('st-frame');
+        const dashLoader = document.getElementById('dashLoader');
+        const loaderText = document.getElementById('loaderText');
+        const loaderSub = document.getElementById('loaderSub');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        let connecte = false;
+        let tentative = 0;
+        const MAX = 30;
+
+        function demarrerConnexion() {
+            if (connecte) return;
+            tentative = 0;
+            verifier();
+        }
+
+        function verifier() {
+            tentative++;
+            loaderText.textContent = 'Connexion au serveur Streamlit...';
+            loaderSub.textContent = `Tentative ${tentative} / ${MAX}`;
+
+            fetch('http://localhost:8501/', { mode: 'no-cors', cache: 'no-cache' })
+                .then(() => {
+                    connecte = true;
+                    statusDot.classList.add('connected');
+                    statusText.textContent = 'Connecte';
+                    iframe.src = 'http://localhost:8501/?embed=true';
+                    iframe.onload = () => {
+                        dashLoader.classList.add('hidden');
+                        iframe.classList.add('loaded');
+                    };
+                })
+                .catch(() => {
+                    if (tentative < MAX) {
+                        setTimeout(verifier, 2000);
+                    } else {
+                        loaderText.textContent = 'Serveur hors ligne';
+                        loaderSub.textContent = 'Lancez lancer_projet.bat puis reessayez';
+                        loaderText.style.color = '#ef4444';
+                        statusDot.style.background = '#ef4444';
+                        statusText.textContent = 'Deconnecte';
+                    }
+                });
+        }
+    </script>
+
+</body>
+</html>
